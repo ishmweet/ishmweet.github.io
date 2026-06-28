@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>~/ishmeet</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --prompt-user: #4af626;
+            --prompt-host: #4af626;
+            --prompt-dir: #2196f3;
+            --accent-color: #ffb300;
+            --font-stack: 'Ubuntu Mono', 'Consolas', 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        #terminal {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .output-line {
+            white-space: pre-wrap;
+            margin-bottom: 6px;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .prompt {
+            font-weight: bold;
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .prompt .user { color: var(--prompt-user); }
+        .prompt .host { color: var(--prompt-host); }
+        .prompt .dir { color: var(--prompt-dir); }
+
+        #cmd-input {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            font-size: 15px;
+            flex-grow: 1;
+            outline: none;
+            padding: 0;
+        }
+
+        .accent { color: var(--accent-color); }
+        .error { color: #ff5252; }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 8px 0;
+        }
+
+        li { margin-bottom: 4px; }
+        a { color: var(--accent-color); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div id="terminal">
+    <div id="history"></div>
+    <div class="input-line" id="input-container" style="display: none;">
+        <span class="prompt"><span class="user">visitor</span>@<span class="host">ishmeet's-terminal</span>:<span class="dir">~</span>$</span>
+        <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false">
+    </div>
+</div>
+
+<script>
+    const historyContainer = document.getElementById('history');
+    const cmdInput = document.getElementById('cmd-input');
+    const inputContainer = document.getElementById('input-container');
+
+    const info = {
+        about: `ishmeet — cybersecurity student.
+
+into networking and penetration testing. 
+
+github: github.com/ishmweet`,
+
+        skills: [
+            "computer networking",
+            "go — learned to read and understand codebases (basic)",
+            "python (intermediate)",
+            "c (basic)",
+            "bash / linux — automation, power use",
+            "osint — open source intelligence gathering",
+            "fedora linux (KDE) — daily driver"
+        ],
+
+        projects: [
+            {
+                name: "veluna",
+                desc: "stream millions of songs, free and open source. desktop music player for windows & linux.",
+                url: "https://github.com/ishmweet/veluna"
+            },
+            {
+                name: "osintrecon",
+                desc: "osint reconnaissance tool.",
+                url: "https://github.com/ishmweet/OSINTrecon"
+            },
+            {
+                name: "fluxform",
+                desc: "offline file converter for linux. audio, video, images, documents, archives.",
+                url: "https://github.com/ishmweet/fluxform"
+            }
+        ],
+
+        contact: {
+            email: "ishmeet.cybersec@gmail.com"
+        }
+    };
+
+    const bootLines = [
+        "ishmeet's terminal — v1.0.0",
+        "",
+        "System information as of " + new Date().toDateString(),
+        "",
+        "System load:  existential        Processes:           running",
+        "Usage of /:   too many tabs      Users logged in:     just you",
+        "Memory usage: enough",
+        "",
+        "Lost? Type <span class='accent'>help</span> to see available commands.\n"
+    ];
+
+    function printLine(text, className = '') {
+        const div = document.createElement('div');
+        div.className = `output-line ${className}`;
+        div.innerHTML = text;
+        historyContainer.appendChild(div);
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    async function runBoot() {
+        for (let line of bootLines) {
+            printLine(line);
+            await new Promise(resolve => setTimeout(resolve, 150));
+        }
+        inputContainer.style.display = 'flex';
+        cmdInput.focus();
+    }
+
+    function handleCommand(cmdStr) {
+        const trimmed = cmdStr.trim();
+        printLine(`<span class="prompt"><span class="user">visitor</span>@<span class="host">ishmeet's-terminal</span>:<span class="dir">~</span>$</span> ${cmdStr}`);
+
+        if (trimmed === '') return;
+
+        const args = trimmed.split(' ');
+        const command = args[0].toLowerCase();
+
+        switch(command) {
+            case 'help':
+                printLine("available commands:\n" +
+                          "  <span class='accent'>about</span>    - who is this person\n" +
+                          "  <span class='accent'>skills</span>   - tech stack and tools\n" +
+                          "  <span class='accent'>projects</span> - things i built\n" +
+                          "  <span class='accent'>contact</span>  - how to reach\n" +
+                          "  <span class='accent'>clear</span>    - clear terminal");
+                break;
+
+            case 'about':
+                printLine(info.about);
+                break;
+
+            case 'skills':
+                printLine("tech stack:");
+                let skillsList = "<ul>";
+                info.skills.forEach(skill => {
+                    skillsList += `<li>  • ${skill}</li>`;
+                });
+                skillsList += "</ul>";
+                printLine(skillsList);
+                break;
+
+            case 'projects':
+                printLine("projects:");
+                let projList = "<ul>";
+                info.projects.forEach(p => {
+                    projList += `<li>  • <span class='accent'>${p.name}</span> — ${p.desc}\n    <a href="${p.url}" target="_blank">${p.url}</a></li>`;
+                });
+                projList += "</ul>";
+                printLine(projList);
+                break;
+
+            case 'contact':
+                printLine(`  email:   <a href="mailto:ishmeet.cybersec@gmail.com">ishmeet.cybersec@gmail.com</a>`);
+                break;
+
+            case 'clear':
+                historyContainer.innerHTML = '';
+                break;
+
+            default:
+                printLine(`bash: ${command}: command not found. type 'help' for hints.`, 'error');
+        }
+    }
+
+    cmdInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const command = cmdInput.value;
+            handleCommand(command);
+            cmdInput.value = '';
+        }
+    });
+
+    document.addEventListener('click', () => {
+        cmdInput.focus();
+    });
+
+    runBoot();
+</script>
+</body>
+</html>
